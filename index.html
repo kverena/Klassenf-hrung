@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Führungsverhalten analysieren</title>
+<style>
+:root{
+  --green:#00883A; --green-dark:#006b2e; --green-soft:#e6f2ea; --ink:#1f2421; --muted:#5b625e;
+  --line:#d7ddd9; --bg:#f6f7f6; --card:#ffffff; --warn:#a15c00; --warn-soft:#fff4e2; --blue:#2a5d9f; --blue-soft:#e8eef8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;font-size:16px}
+header.top{background:var(--green);color:#fff;padding:18px 16px}
+header.top .inner{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+header.top h1{margin:0;font-size:1.45rem;line-height:1.25}
+header.top p{margin:4px 0 0;opacity:.9;font-size:.92rem}
+.namebox{display:flex;flex-direction:column;gap:4px;font-size:.85rem;min-width:220px}
+.namebox input{padding:8px 10px;border-radius:6px;border:0;font:inherit;font-size:.95rem}
+.layout{max-width:1100px;margin:0 auto;padding:16px;display:grid;grid-template-columns:230px 1fr;gap:20px}
+nav.side{position:sticky;top:12px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px}
+nav.side button{display:flex;width:100%;text-align:left;gap:8px;align-items:center;background:none;border:0;padding:9px 10px;border-radius:7px;font:inherit;font-size:.93rem;color:var(--ink);cursor:pointer}
+nav.side button:hover{background:var(--bg)}
+nav.side button.active{background:var(--green-soft);color:var(--green-dark);font-weight:600}
+nav.side .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+nav.side .dot.started{background:#f1c27d;border-color:#d99b3d}
+nav.side .dot.done{background:var(--green);border-color:var(--green)}
+nav.side hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+main{min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:16px}
+h2{margin:0 0 8px;font-size:1.3rem;color:var(--green-dark)}
+h3{margin:18px 0 6px;font-size:1.05rem}
+.kicker{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+.situation p{margin:0 0 10px}
+.hint{color:var(--muted);font-size:.9rem;margin:2px 0 8px}
+.modelwrap{display:grid;grid-template-columns:minmax(0,360px) 1fr;gap:20px;align-items:start}
+svg.model{width:100%;height:auto;display:block;touch-action:manipulation}
+svg.model .sec{cursor:pointer;transition:fill .15s}
+svg.model .sec:focus{outline:none}
+svg.model .sec:focus-visible{stroke:var(--blue);stroke-width:3}
+svg.model text{pointer-events:none;font-family:inherit}
+.sectorinfo{background:var(--bg);border-radius:8px;padding:12px 14px;min-height:96px}
+.sectorinfo strong{color:var(--green-dark)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.85rem;border:1px solid var(--line);background:#fff}
+.chip.ok{background:var(--green-soft);border-color:#9fd0b2;color:var(--green-dark)}
+.chip.miss{background:var(--blue-soft);border-color:#b8c9e6;color:var(--blue)}
+.chip.extra{background:var(--warn-soft);border-color:#f0cf9a;color:var(--warn)}
+label.field{display:block;font-weight:600;margin:16px 0 4px}
+label.field span{display:block;font-weight:400;color:var(--muted);font-size:.88rem}
+textarea{width:100%;min-height:110px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:.95rem;resize:vertical;background:#fff}
+textarea:focus,input:focus{outline:2px solid var(--green);outline-offset:1px}
+.impuls{background:var(--green-soft);border-left:4px solid var(--green);padding:10px 14px;border-radius:0 8px 8px 0;font-style:italic;margin:6px 0}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+button.btn{font:inherit;font-size:.95rem;padding:9px 16px;border-radius:7px;border:1px solid var(--green);background:var(--green);color:#fff;cursor:pointer}
+button.btn:hover{background:var(--green-dark)}
+button.btn.ghost{background:#fff;color:var(--green-dark)}
+button.btn.ghost:hover{background:var(--green-soft)}
+button.btn.danger{background:#fff;color:#a32d2d;border-color:#d9a3a3}
+.reveal{border-top:1px dashed var(--line);margin-top:20px;padding-top:6px}
+.reveal p{margin:0 0 10px}
+.legend{font-size:.85rem;color:var(--muted)}
+.status{font-size:.82rem;color:var(--muted);margin-top:10px}
+table.over{width:100%;border-collapse:collapse;font-size:.92rem}
+table.over th,table.over td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+table.over th{background:var(--green-soft)}
+html{-webkit-text-size-adjust:100%}
+button,.sec,input,textarea{-webkit-tap-highlight-color:rgba(0,136,58,.15)}
+button.btn,nav.side button{min-height:44px}
+textarea{overflow:hidden;min-height:110px;font-size:16px;font-weight:400}
+#printArea{display:none}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:8px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:820px){
+  .layout{grid-template-columns:1fr;padding:12px}
+  nav.side{position:static;display:flex;overflow-x:auto;gap:4px;padding:6px}
+  nav.side button{width:auto;white-space:nowrap;flex:none}
+  nav.side hr{display:none}
+  .modelwrap{grid-template-columns:1fr}
+  .card{padding:16px}
+}
+@media (min-width:821px) and (max-width:1100px){
+  .layout{grid-template-columns:200px 1fr;gap:14px}
+  .modelwrap{grid-template-columns:minmax(0,320px) 1fr}
+}
+@media print{
+  body{background:#fff}
+  header.top,.layout,.toast{display:none!important}
+  #printArea{display:block!important;font-size:11pt;color:#000}
+  #printArea h1{color:#00883A;font-size:18pt;margin:0 0 4pt}
+  #printArea h2{color:#00883A;font-size:14pt;margin:16pt 0 4pt;break-after:avoid}
+  #printArea h3{font-size:11.5pt;margin:10pt 0 2pt;break-after:avoid}
+  #printArea .txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 6pt}
+  #printArea .sit{color:#444}
+  #printArea section{break-before:page}
+  #printArea section:first-of-type{break-before:auto}
+  @page{size:A4;margin:18mm}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="inner">
+  <div>
+    <h1>Führungsverhalten von Lehrkräften analysieren</h1>
+    <p>Seminar Klassenführung · Fallarbeit mit dem Modell des interpersonalen Lehrerverhaltens</p>
+  </div>
+  <label class="namebox">Ihr Name (erscheint im Download)
+    <input id="name" type="text" autocomplete="name" placeholder="Vorname Nachname">
+  </label>
+</div></header>
+
+<div class="layout">
+  <nav class="side" id="nav" aria-label="Bereiche"></nav>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="printArea"></div>
+
+<script>
+const DATA = {"title":"Fallbeispiele zum Führungsverhalten von Lehrkräften","intro":["Die sieben Fallbeispiele zeigen Lehrkräfte in aktuellen Unterrichtssituationen und lassen sich mit dem Modell des interpersonalen Lehrerverhaltens nach Wubbels (in Anlehnung an Leary) analysieren. Das Modell ordnet Verhalten auf zwei Achsen ein, nämlich Dominanz und Unterordnung als Ausmaß an Einfluss sowie Kooperation und Opposition als Ausmaß an Nähe. Daraus ergeben sich acht Sektoren von Führung über Unterstützung, Verständnis und Freiräume bis zu Zurückhaltung, Unzufriedenheit, Sanktion und Strenge.","In einigen Fällen steht ein einzelner Sektor im Vordergrund. Andere Fälle zeigen, wie eine Lehrkraft ihr Verhalten innerhalb weniger Minuten adaptiv verschiebt. Jede Analyse benennt die beobachtbaren Verhaltensweisen, ordnet sie den Sektoren zu und fragt nach der Passung zur Situation. Ein Reflexionsimpuls am Ende jedes Falls kann als Arbeitsauftrag für Kleingruppen dienen."],"cases":[{"nr":1,"title":"KI-Chatbot in der Gruppenarbeit","sectors":["UK","DK","KD"],"situation":["Herr Demir unterrichtet Geschichte in einer 9. Tabletklasse. Die Gruppen sollen mit einem schulisch freigegebenen KI-Chatbot Quellen zur Weimarer Republik erschließen und eigene Thesen formulieren. Er kündigt an, dass die Gruppen ihren Weg selbst wählen dürfen, und zieht sich ans Pult zurück.","Nach zehn Minuten geht er durch die Reihen. Drei Gruppen haben sich vom Chatbot fertige Thesen formulieren lassen und kopieren sie in ihr Dokument. Herr Demir unterbricht die ganze Klasse, bittet um Aufmerksamkeit und erklärt in klaren Worten, was eine eigene These ausmacht. Er legt eine verbindliche Reihenfolge fest, zuerst die Quelle lesen, dann eine eigene Vermutung notieren und erst danach den Chatbot zur Überprüfung nutzen. Anschließend setzt er sich zu einer Gruppe, die nicht weiterkommt, fragt nach ihren Ideen und lobt einen gelungenen Gedanken."],"analysis":["Der Einstieg liegt im Sektor Freiräume, denn die Lehrkraft gibt Verantwortung ab und ermöglicht freies Arbeiten. Der Freiraum ist hier jedoch nicht strukturiert, weil Kriterien für eine eigenständige Leistung fehlen und die Lehrkraft das Geschehen zunächst nicht beobachtet.","Als er das Problem erkennt, wechselt er deutlich nach oben auf der Dominanzachse in den Sektor Führung. Er unterbricht, erklärt und legt Vorgehensweisen fest. Bemerkenswert ist, dass er dabei nicht in Sanktion oder Unzufriedenheit gerät, obwohl Anlass zur Kritik bestünde. Mit dem Wechsel zur einzelnen Gruppe verschiebt er sich in den Sektor Unterstützung, indem er Interesse zeigt und Selbstvertrauen stärkt.","Der Fall zeigt adaptives Verhalten, das durchgehend auf der kooperativen Seite des Modells bleibt und je nach Bedarf zwischen Freiräume, Führung und Unterstützung wechselt. Er zeigt auch, dass offene Lernsettings mit digitalen Werkzeugen eine vorgelagerte Führungsleistung brauchen, damit Freiraum lernwirksam wird."],"impuls":"Wie hätte Herr Demir den Einstieg gestalten können, damit der Wechsel in den Sektor Führung gar nicht nötig geworden wäre?"},{"nr":2,"title":"Ein Video im Klassenchat","sectors":["OD","DO","KD","UO"],"situation":["Frau Lindner betritt am Montag ihre 8. Klasse. Ein Schüler flüstert ihr zu, dass im Klassenchat ein kurzes Video kursiert, das sie beim Stolpern über ein Kabel zeigt und mit Musik unterlegt wurde. Mehrere Schülerinnen und Schüler grinsen.","Frau Lindner wird laut, verlangt, dass alle Handys sofort auf das Pult gelegt werden, und kündigt an, die Schulleitung einzuschalten. Als ein Schüler protestiert, er habe damit nichts zu tun, erhält er einen Verweis. Die Stimmung kippt, in der restlichen Stunde arbeiten nur wenige mit.","Am nächsten Tag beginnt sie die Stunde anders. Sie sagt ruhig, dass sie das Video verletzt hat und dass Filmen ohne Einwilligung gegen die Schulordnung und das Recht am eigenen Bild verstößt. Sie kündigt an, mit den Beteiligten einzeln zu sprechen, und bittet die Klasse, das Video zu löschen. Den Verweis gegen den unbeteiligten Schüler nimmt sie zurück."],"analysis":["Die erste Reaktion liegt klar im Sektor Sanktion. Frau Lindner äußert Verdruss, verbietet und straft, und zwar die ganze Klasse statt der Verursachenden. Die Kollektivmaßnahme und der ungerechtfertigte Verweis führen dazu, dass die Klasse ihrerseits auf Opposition geht. Hier wird sichtbar, wie Verhalten auf der oppositionellen Seite komplementäres Verhalten der Lernenden auslösen und eine Eskalationsspirale beginnen kann.","Am Folgetag verschiebt sich ihr Verhalten in Richtung Strenge, verbunden mit Elementen von Unterstützung und Zurückhaltung. Sie setzt eine klare Norm und kontrolliert deren Einhaltung, bleibt dabei aber sachlich. Indem sie die eigene Verletzung benennt und den Fehler beim Verweis zugibt, zeigt sie Verhaltensweisen aus dem unteren Teil des Modells, ohne an Autorität zu verlieren. Die Kombination aus klarer Grenze und Offenheit macht ihren Einfluss wieder anschlussfähig."],"impuls":"Worin unterscheiden sich die Sektoren Strenge und Sanktion in diesem Fall, und woran hätte Frau Lindner schon in der ersten Stunde erkennen können, dass sie in den Sektor Sanktion gerät?"},{"nr":3,"title":"Warten auf Ruhe nach der Pause","sectors":["UO","OU"],"situation":["Frau Schuster ist Referendarin und übernimmt eine 7. Klasse in der sechsten Stunde. Nach der Mittagspause ist die Klasse unruhig, einige Schüler diskutieren laut über ein Onlinespiel. Frau Schuster stellt sich vor die Tafel, verschränkt die Arme und wartet. Nach zwei Minuten sagt sie mit leiser Stimme, sie könne auch warten, die Zeit fehle dann eben am Ende.","Als es kaum ruhiger wird, seufzt sie hörbar und fragt, ob das in jeder Stunde so sein müsse. Einzelne Schülerinnen werden still, andere lachen. Sie beginnt schließlich mit dem Unterricht, obwohl noch geredet wird, und entschuldigt sich später bei der Mentorin, die Klasse sei heute einfach besonders schwierig gewesen."],"analysis":["Das Verhalten liegt überwiegend auf der Unterordnungsseite des Modells. Das abwartende, zurückhaltende Auftreten entspricht dem Sektor Zurückhaltung. Das Seufzen, die rhetorische Frage und die leise Drohung mit der verlorenen Zeit gehören in den Sektor Unzufriedenheit, denn die Lehrkraft wartet auf Ruhe, zeigt ihren Unmut und stellt in Frage, ohne selbst zu steuern.","Die Klasse erlebt dadurch wenig Einfluss bei gleichzeitig spürbarer Distanz. Dieses Muster ist bei Berufsanfängerinnen und Berufsanfängern häufig zu beobachten und gilt in der Forschung als ungünstig für Lernklima und Leistung. Hilfreich wäre ein Wechsel in den Sektor Führung mit einem eingeführten Startritual, einem klaren Signal und einer sofort beginnenden Aufgabe. Das Gespräch über das Onlinespiel könnte sie kurz aufgreifen und so Elemente aus dem Sektor Unterstützung einbringen."],"impuls":"Formulieren Sie für Frau Schuster drei konkrete Sätze für den Stundenbeginn, die im Sektor Führung liegen und zugleich kooperativ wirken."},{"nr":4,"title":"Wutausbruch in der inklusiven Klasse","sectors":["KU","DK","KD"],"situation":["In einer 5. Klasse einer Mittelschule lernt Jonas, der einen Förderbedarf im Bereich emotionale und soziale Entwicklung hat. Während einer Partnerarbeit in Mathematik wirft er plötzlich sein Heft auf den Boden und ruft, die Aufgabe sei bescheuert. Sein Sitznachbar rückt erschrocken ab.","Herr Okafor geht ruhig zu Jonas, kniet sich neben den Tisch und sagt leise, er sehe, dass Jonas gerade sehr wütend sei. Er bietet ihm an, für fünf Minuten an den vereinbarten Ruheplatz im Flur zu gehen, und erinnert an die Absprache, danach weiterzuarbeiten. Zur Klasse sagt er knapp und bestimmt, dass alle mit ihrer Aufgabe fortfahren. Nach der Rückkehr setzt er sich kurz zu Jonas, zerlegt die Aufgabe in zwei kleinere Schritte und lobt ihn, als der erste Schritt gelingt."],"analysis":["Im Vordergrund steht der Sektor Verständnis. Herr Okafor hört zu, benennt das Gefühl, bleibt geduldig und sucht eine Lösung statt einer Strafe. Diese Haltung allein würde aber nicht ausreichen. Wirksam wird sie, weil sie in eine vorab vereinbarte Struktur eingebettet ist, die dem Sektor Führung zuzuordnen ist, nämlich den Ruheplatz, die Zeitbegrenzung und die Rückkehrabsprache.","Gegenüber der Klasse wechselt er für einen Moment in einen knappen, anweisenden Ton und sichert damit den Unterrichtsfluss für alle. Die anschließende Hilfe bei der Aufgabe liegt im Sektor Unterstützung. Der Fall zeigt, dass im inklusiven Unterricht verschiedene Sektoren gleichzeitig gegenüber Einzelnen und gegenüber der Gruppe gefordert sein können."],"impuls":"Welche Elemente aus dem Sektor Führung mussten Herr Okafor und Jonas bereits vor dieser Stunde etabliert haben, damit das verständnisvolle Vorgehen gelingen konnte?"},{"nr":5,"title":"Freiarbeit im Lernbüro","sectors":["UK","KU","DK"],"situation":["An einer Realschule arbeitet die 8. Jahrgangsstufe zwei Stunden pro Woche im Lernbüro. Die Schülerinnen und Schüler wählen Aufgaben aus digitalen Lernpfaden und dokumentieren ihren Fortschritt in einem Lerntagebuch. Frau Petrov ist überzeugt, dass Jugendliche Verantwortung übernehmen sollen. Sie begrüßt alle freundlich, steht für Fragen zur Verfügung und lässt die Gruppen arbeiten.","Nach sechs Wochen zeigt die Auswertung der Lernpfade ein gespaltenes Bild. Etwa die Hälfte der Klasse ist gut vorangekommen. Eine Gruppe am Fenster hat kaum Einträge, ihre Mitglieder schauen häufig gemeinsam Videos auf einem Tablet. Frau Petrov hat das bemerkt, wollte die Gruppe aber nicht bevormunden. Sie führt nun mit jeder Gruppe ein kurzes Planungsgespräch, vereinbart Wochenziele und führt eine feste Zwischenbilanz am Ende jeder Stunde ein."],"analysis":["Frau Petrov handelt lange Zeit fast ausschließlich in den Sektoren Freiräume und Verständnis. Sie gibt Verantwortung, viel Zuspruch und ist offen. Für selbstständige Lernende ist das passend. Für Lernende mit geringerer Selbstregulation fehlt jedoch der Einfluss aus der oberen Hälfte des Modells, insbesondere Monitoring und klare Erwartungen.","Das Zurückhalten gegenüber der Gruppe am Fenster ist gut gemeint, nähert sich aber dem Sektor Zurückhaltung an. Mit den Planungsgesprächen und der Zwischenbilanz ergänzt sie ihr Repertoire um den Sektor Führung, ohne die Freiräume aufzugeben. Der Fall eignet sich, um die wertrationale Basis „Freiheit in Grenzen“ zu diskutieren, denn Freiheit wird hier erst durch Grenzen und Struktur für alle nutzbar."],"impuls":"An welchen Signalen hätte Frau Petrov früher erkennen können, dass einzelne Gruppen mehr Führung brauchen, und wie lässt sich diese Führung adaptiv nur für diese Gruppen einsetzen?"},{"nr":6,"title":"Der Klassenrat entscheidet","sectors":["UO","UK","DO"],"situation":["Die 6b hat seit Schuljahresbeginn einen wöchentlichen Klassenrat. Eine Schülerin leitet die Sitzung, ein Schüler führt Protokoll. Heute geht es um Streit an der Tischtennisplatte in der Pause. Herr Weber sitzt im Stuhlkreis, hält sich mit eigenen Beiträgen zurück und meldet sich wie alle anderen, wenn er etwas sagen möchte.","Die Diskussion gerät ins Stocken, zwei Jungen beschuldigen sich gegenseitig. Herr Weber greift nicht ein, sondern wartet, bis die Moderatorin nachfragt, welche Lösungsvorschläge es gibt. Erst als ein Vorschlag lautet, ein bestimmtes Kind ganz von der Platte auszuschließen, meldet er sich und erinnert an die vereinbarte Regel, dass Beschlüsse niemanden dauerhaft ausgrenzen dürfen. Die Klasse beschließt schließlich einen Spielplan für die Pausen."],"analysis":["Herr Weber zeigt bewusst Verhalten aus der unteren Hälfte des Modells. Er hält sich bedeckt und wartet ab, was dem Sektor Zurückhaltung entspricht, und er gibt Verantwortung ab, was dem Sektor Freiräume entspricht. Anders als im Fall 3 ist diese Zurückhaltung hier kein Ausdruck von Unsicherheit, sondern eine pädagogische Entscheidung im Dienst von Partizipation und Selbstwirksamkeit.","Seine Zurückhaltung endet an einer klar markierten Grenze. Bei dem ausgrenzenden Vorschlag wechselt er kurz in den Sektor Strenge und erinnert an eine Norm. Er tut dies in der Rolle eines Mitglieds des Klassenrats und nicht als übergeordnete Instanz. Der Fall zeigt, dass kein Sektor an sich günstig oder ungünstig ist. Entscheidend ist die Passung zur Situation und zum Ziel des Settings."],"impuls":"Vergleichen Sie die Zurückhaltung von Herrn Weber mit der von Frau Schuster in Fall 3. Woran lässt sich im Unterricht erkennen, ob Zurückhaltung gewählt oder erlitten ist?"},{"nr":7,"title":"Die Präsentation stürzt ab","sectors":["UO","KD","DK"],"situation":["Frau Kaya beginnt in einer 10. Klasse eine Physikstunde mit einem interaktiven Quiz über das digitale Board. Nach der zweiten Frage friert das System ein, auf dem Board erscheint ein Updatehinweis. Erste Kommentare fallen, jemand ruft, das sei wohl die Rache der Technik. Die Klasse lacht.","Frau Kaya lacht mit und sagt, sie habe gestern vergessen, das Update zu installieren, das sei ihr Fehler. Dann kündigt sie an, dass das Quiz nun analog weitergeht. Sie verteilt farbige Antwortkarten, stellt die nächste Frage mündlich und lässt alle gleichzeitig ihre Karte heben. Nach zwei Minuten läuft die Stunde in gewohntem Tempo weiter."],"analysis":["Der Fall zeigt einen raschen Wechsel zwischen drei Sektoren. Mit dem Eingeständnis des eigenen Fehlers zeigt Frau Kaya Verhalten aus dem Sektor Zurückhaltung. Das gemeinsame Lachen und der Humor gehören in den Sektor Unterstützung. Unmittelbar danach übernimmt sie mit einer klaren Ansage und einem neuen Verfahren wieder die Steuerung im Sektor Führung.","Gerade die Verbindung dieser Sektoren sichert ihre Autorität. Hätte sie die Kommentare zurückgewiesen, wäre sie in Richtung Sanktion geraten. Hätte sie länger am Board herumprobiert, wäre die Klasse in eine Wartesituation ohne Steuerung gekommen. Der Fall verdeutlicht außerdem, dass ein vorbereiteter analoger Plan B eine Form vorausschauender Führung ist."],"impuls":"Welche Rolle spielt Humor für die Kooperationsachse, und wann kann Humor auch auf die oppositionelle Seite kippen?"}],"summaryLead":"Die Übersicht ordnet jedem Fall die zentralen Sektoren zu und zeigt, wo sich das Verhalten adaptiv verschiebt.","summaryRows":[["1","KI-Chatbot in der Gruppenarbeit","Freiräume, Führung, Unterstützung","Von unstrukturiertem Freiraum zu klarer Steuerung"],["2","Video im Klassenchat","Sanktion, später Strenge und Unterstützung","Von der Eskalation zur sachlichen Grenzsetzung"],["3","Warten auf Ruhe","Zurückhaltung, Unzufriedenheit","Keine, Wechsel zu Führung wäre nötig"],["4","Wutausbruch in der inklusiven Klasse","Verständnis, Führung, Unterstützung","Gleichzeitig gegenüber Einzelnem und Gruppe"],["5","Freiarbeit im Lernbüro","Freiräume, Verständnis","Ergänzung um Führung für einzelne Gruppen"],["6","Klassenrat","Zurückhaltung, Freiräume, Strenge","Gewählte Zurückhaltung mit klarer Grenze"],["7","Technikpanne","Zurückhaltung, Unterstützung, Führung","Rascher Wechsel innerhalb einer Minute"]],"summary":["In der Gesamtschau zeigt sich, dass wirksames Handeln meist im kooperativen Bereich des Modells verankert ist und je nach Situation unterschiedlich viel Einfluss verlangt. Die Fälle 3 und 6 lassen sich gut kontrastieren, weil äußerlich ähnliches Verhalten völlig verschiedene Funktionen erfüllt. Die Fälle 2 und 7 eignen sich, um den Umgang mit Kontrollverlust und die Gefahr komplementärer Eskalation zu besprechen.","Als abschließender Impuls für das Seminar können die Studierenden ihr eigenes erwartetes Profil in das Modell eintragen und mit einer der Lehrkräfte aus den Fällen vergleichen. Dabei lässt sich die Frage anschließen, in welchen Situationen sie selbst eher zu Zurückhaltung oder eher zu Sanktion neigen würden."]};
+
+const SECTORS = {
+  DK:{name:"Führung", desc:"Die Lehrkraft strukturiert und organisiert den Unterricht, stellt Aufgaben, gibt klare Anweisungen und hält die Aufmerksamkeit der Klasse hoch."},
+  KD:{name:"Unterstützung", desc:"Die Lehrkraft ist zugewandt, zeigt Interesse an den Lernenden, hilft, bringt Humor ein und stärkt das Selbstvertrauen."},
+  KU:{name:"Verständnis", desc:"Die Lehrkraft hört aufmerksam und empathisch zu, bleibt geduldig, nimmt Anliegen ernst und sucht gemeinsam nach Lösungen."},
+  UK:{name:"Freiräume", desc:"Die Lehrkraft überträgt Verantwortung, ermöglicht selbstständiges Arbeiten und ermutigt die Lernenden."},
+  UO:{name:"Zurückhaltung", desc:"Die Lehrkraft hält sich zurück, wartet ab, tritt wenig in Erscheinung und räumt eigene Fehler ein."},
+  OU:{name:"Unzufriedenheit", desc:"Die Lehrkraft zeigt Unmut, wartet passiv auf Ruhe, stellt Lernende in Frage und kritisiert häufig."},
+  OD:{name:"Sanktion", desc:"Die Lehrkraft reagiert schnell verärgert, tadelt, verbietet, straft und weist zurecht."},
+  DO:{name:"Strenge", desc:"Die Lehrkraft kontrolliert eng, beurteilt, setzt klare Normen und Regeln durch und sorgt für Ruhe."}
+};
+const ORDER = ["DK","KD","KU","UK","UO","OU","OD","DO"];
+
+const FIELDS = [
+  {key:"obs", label:"Beobachtbares Verhalten", help:"Welche konkreten Handlungen und Äußerungen der Lehrkraft beschreibt der Fall?"},
+  {key:"assign", label:"Zuordnung zum Modell", help:"Welchen Sektoren ordnen Sie diese Verhaltensweisen zu, und wie begründen Sie die Zuordnung?"},
+  {key:"fit", label:"Passung und Adaptivität", help:"Passt das Verhalten zur Situation? Verschiebt sich das Verhalten im Verlauf, und mit welcher Wirkung?"}
+];
+
+/* ---------- state ---------- */
+const STORE_KEY = "fuehrungsverhalten-uebung-v1";
+function emptyEntry(){ return {sectors:[], obs:"", assign:"", fit:"", impuls:"", revealed:false}; }
+function freshState(){
+  const s = {name:"", cases:{}, own:Object.assign(emptyEntry(), {title:"", situation:""}), view:"model"};
+  DATA.cases.forEach(c => s.cases[c.nr] = emptyEntry());
+  return s;
+}
+let state = freshState();
+try{
+  const raw = localStorage.getItem(STORE_KEY);
+  if(raw){ mergeState(JSON.parse(raw)); }
+}catch(e){}
+function mergeState(obj){
+  if(!obj || typeof obj!=="object") return;
+  const base = freshState();
+  base.name = typeof obj.name==="string" ? obj.name : "";
+  if(obj.cases) for(const k in base.cases){ if(obj.cases[k]) base.cases[k] = Object.assign(emptyEntry(), obj.cases[k]); }
+  if(obj.own) base.own = Object.assign(base.own, obj.own);
+  if(obj.view) base.view = obj.view;
+  state = base;
+}
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); setStatus("Automatisch in diesem Browser gespeichert"); }
+    catch(e){ setStatus("Automatisches Speichern ist in diesem Browser nicht möglich. Bitte zwischendurch eine Sicherung herunterladen."); }
+  }, 300);
+}
+function autoGrow(t){ t.style.height="auto"; t.style.height=(t.scrollHeight+2)+"px"; }
+function growAll(){ requestAnimationFrame(()=>document.querySelectorAll("main textarea").forEach(autoGrow)); }
+document.addEventListener("input", ev=>{ if(ev.target.tagName==="TEXTAREA") autoGrow(ev.target); });
+window.addEventListener("resize", growAll);
+function setStatus(t){ const el=document.getElementById("status"); if(el) el.textContent=t; }
+function toast(t){ const el=document.getElementById("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),2200); }
+
+/* ---------- helpers ---------- */
+const $ = (sel,root=document)=>root.querySelector(sel);
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function entryFor(view){ return view==="own" ? state.own : state.cases[view]; }
+function progress(e){
+  const filled = FIELDS.filter(f=>e[f.key].trim()).length + (e.sectors.length?1:0);
+  if(filled===0 && !(e.impuls||"").trim()) return "";
+  return filled>=4 ? "done" : "started";
+}
+
+/* ---------- model svg ---------- */
+function modelSVG(opts){
+  const C=220, H=160;
+  const P = {c:[C,C], t:[C,C-H], tr:[C+H,C-H], r:[C+H,C], br:[C+H,C+H], b:[C,C+H], bl:[C-H,C+H], l:[C-H,C], tl:[C-H,C-H]};
+  const tri = {DK:["t","tr"], KD:["tr","r"], KU:["r","br"], UK:["br","b"], UO:["b","bl"], OU:["bl","l"], OD:["l","tl"], DO:["tl","t"]};
+  let s = `<svg class="model" viewBox="0 0 440 440" role="group" aria-label="Modell mit acht Sektoren">`;
+  ORDER.forEach(code=>{
+    const [a,b] = tri[code].map(k=>P[k]);
+    const pts = [P.c,a,b].map(p=>p.join(",")).join(" ");
+    const cx = (C+a[0]+b[0])/3, cy=(C+a[1]+b[1])/3;
+    const st = opts.style(code);
+    s += `<polygon class="sec" data-code="${code}" points="${pts}" fill="${st.fill}" stroke="#ffffff" stroke-width="2" tabindex="0" role="button" aria-pressed="${st.pressed?'true':'false'}" aria-label="${code} ${SECTORS[code].name}"></polygon>`;
+    s += `<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="12" font-weight="700" fill="${st.ink}">${code}</text>`;
+    s += `<text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="11" fill="${st.ink}">${SECTORS[code].name}</text>`;
+    if(st.mark) s += `<text x="${cx}" y="${cy+27}" text-anchor="middle" font-size="13" font-weight="700" fill="${st.ink}">${st.mark}</text>`;
+  });
+  s += `<line x1="${C}" y1="${C-H-6}" x2="${C}" y2="${C+H+6}" stroke="#c0137a" stroke-width="2.5" pointer-events="none"/>`;
+  s += `<line x1="${C-H-6}" y1="${C}" x2="${C+H+6}" y2="${C}" stroke="#c0137a" stroke-width="2.5" pointer-events="none"/>`;
+  s += `<text x="${C}" y="${C-H-16}" text-anchor="middle" font-size="15" font-weight="700" fill="#c0137a">Dominanz</text>`;
+  s += `<text x="${C}" y="${C+H+30}" text-anchor="middle" font-size="15" font-weight="700" fill="#c0137a">Unterordnung</text>`;
+  s += `<text transform="translate(${C+H+24},${C}) rotate(90)" text-anchor="middle" font-size="15" font-weight="700" fill="#c0137a">Kooperation</text>`;
+  s += `<text transform="translate(${C-H-16},${C}) rotate(-90)" text-anchor="middle" font-size="15" font-weight="700" fill="#c0137a">Opposition</text>`;
+  return s + `</svg>`;
+}
+function bindModel(root, onToggle){
+  root.querySelectorAll(".sec").forEach(el=>{
+    el.addEventListener("click", ()=>onToggle(el.dataset.code));
+    el.addEventListener("keydown", ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); onToggle(el.dataset.code);} });
+  });
+}
+
+/* ---------- navigation ---------- */
+function renderNav(){
+  const nav = $("#nav");
+  const items = [["model","Das Modell"],["intro","Arbeitsauftrag"]];
+  let h = items.map(([v,t])=>`<button data-view="${v}" class="${state.view===v?'active':''}">${t}</button>`).join("");
+  h += "<hr>";
+  DATA.cases.forEach(c=>{
+    const p = progress(state.cases[c.nr]);
+    h += `<button data-view="${c.nr}" class="${String(state.view)===String(c.nr)?'active':''}"><span class="dot ${p}"></span>Fall ${c.nr} · ${esc(c.title)}</button>`;
+  });
+  h += `<button data-view="own" class="${state.view==='own'?'active':''}"><span class="dot ${progress(state.own)}"></span>Eigenes Fallbeispiel</button>`;
+  h += "<hr>";
+  h += `<button data-view="export" class="${state.view==='export'?'active':''}">Übersicht und Download</button>`;
+  nav.innerHTML = h;
+  nav.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>go(b.dataset.view)));
+}
+function go(view){ state.view = view; save(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+
+/* ---------- views ---------- */
+function render(){
+  renderNav();
+  const v = state.view;
+  if(v==="model") return renderModel();
+  if(v==="intro") return renderIntro();
+  if(v==="export") return renderExport();
+  if(v==="own") return renderCase(null);
+  const c = DATA.cases.find(x=>String(x.nr)===String(v));
+  if(c) return renderCase(c); else { state.view="model"; renderModel(); }
+}
+
+function renderModel(){
+  let cur = "DK";
+  const main = $("#main");
+  const draw = ()=>{
+    main.innerHTML = `<section class="card">
+      <div class="kicker">Grundlage</div>
+      <h2>Das Modell des interpersonalen Lehrerverhaltens</h2>
+      <p>Das Modell nach Wubbels in Anlehnung an Leary beschreibt das Verhalten von Lehrkräften auf zwei Achsen. Die senkrechte Achse von Dominanz bis Unterordnung steht für das Ausmaß an Einfluss, die waagerechte Achse von Opposition bis Kooperation für das Ausmaß an Nähe. Aus beiden Achsen ergeben sich acht Sektoren.</p>
+      <div class="modelwrap">
+        <div id="m">${modelSVG({style:code=>({fill: code===cur?"#00883A":"#dfe9e2", ink: code===cur?"#ffffff":"#1f2421"})})}</div>
+        <div>
+          <div class="sectorinfo"><strong>${cur} · ${SECTORS[cur].name}</strong><br>${SECTORS[cur].desc}</div>
+          <p class="hint">Wählen Sie einen Sektor im Modell aus, um seine Beschreibung zu sehen.</p>
+          <div class="btnrow"><button class="btn" id="start">Zum Arbeitsauftrag</button></div>
+        </div>
+      </div>
+    </section>`;
+    bindModel($("#m"), code=>{ cur=code; draw(); const el=$(`#m .sec[data-code="${code}"]`); if(el) el.focus(); });
+    $("#start").onclick = ()=>go("intro");
+  };
+  draw();
+}
+
+function renderIntro(){
+  $("#main").innerHTML = `<section class="card">
+    <div class="kicker">So arbeiten Sie</div>
+    <h2>Arbeitsauftrag</h2>
+    ${DATA.intro.map(p=>`<p>${esc(p)}</p>`).join("")}
+    <h3>Vorgehen bei jedem Fall</h3>
+    <p>Lesen Sie die Situation genau und markieren Sie im Modell die Sektoren, in denen sich das Verhalten der Lehrkraft zeigt. Beschreiben Sie anschließend das beobachtbare Verhalten, begründen Sie Ihre Zuordnung und beurteilen Sie, wie gut das Verhalten zur Situation passt. Beantworten Sie zum Schluss den Reflexionsimpuls.</p>
+    <p>Erst danach sollten Sie Ihre Bearbeitung mit der Musteranalyse vergleichen. Abweichungen sind kein Fehler, solange Sie Ihre Zuordnung am Fall begründen können.</p>
+    <p>Im Bereich Eigenes Fallbeispiel können Sie eine Situation aus Ihrer Schulzeit oder einem Praktikum beschreiben und mit demselben Raster analysieren.</p>
+    <h3>Speichern und Herunterladen</h3>
+    <p>Ihre Eingaben werden automatisch in diesem Browser gespeichert. Unter Übersicht und Download können Sie Ihre Bearbeitung als PDF oder Word-Datei herunterladen sowie eine Sicherungsdatei speichern, mit der Sie an einem anderen Gerät weiterarbeiten.</p>
+    <div class="btnrow"><button class="btn" id="first">Mit Fall 1 beginnen</button></div>
+  </section>`;
+  $("#first").onclick = ()=>go(1);
+}
+
+function renderCase(c){
+  const own = !c;
+  const e = own ? state.own : state.cases[c.nr];
+  const main = $("#main");
+  const idx = own ? DATA.cases.length : DATA.cases.findIndex(x=>x.nr===c.nr);
+
+  const sitHTML = own
+    ? `<label class="field">Titel Ihres Falls<input id="ownTitle" type="text" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;margin-top:4px" value="${esc(e.title||"")}" placeholder="z. B. Vertretungsstunde in der 6. Klasse"></label>
+       <label class="field">Situation<span>Beschreiben Sie eine Unterrichtssituation aus Ihrer Schulzeit, einem Praktikum oder Ihrer Beobachtung möglichst konkret und ohne Namen realer Personen.</span><textarea id="ownSit" style="min-height:150px">${esc(e.situation||"")}</textarea></label>`
+    : `<div class="situation">${c.situation.map(p=>`<p>${esc(p)}</p>`).join("")}</div>`;
+
+  main.innerHTML = `<section class="card">
+      <div class="kicker">${own?"Eigene Fallarbeit":"Fall "+c.nr+" von "+DATA.cases.length}</div>
+      <h2>${own?"Eigenes Fallbeispiel":esc(c.title)}</h2>
+      ${sitHTML}
+    </section>
+    <section class="card">
+      <h3 style="margin-top:0">1 · Sektoren markieren</h3>
+      <p class="hint">Wählen Sie alle Sektoren aus, in denen sich das Verhalten der Lehrkraft zeigt. Ein erneuter Klick hebt die Auswahl auf.</p>
+      <div class="modelwrap">
+        <div id="m"></div>
+        <div>
+          <div class="sectorinfo" id="selinfo"></div>
+        </div>
+      </div>
+      <h3>2 · Analyse</h3>
+      ${FIELDS.map(f=>`<label class="field">${f.label}<span>${f.help}</span><textarea data-key="${f.key}">${esc(e[f.key])}</textarea></label>`).join("")}
+      ${own?"":`<h3>3 · Reflexionsimpuls</h3><div class="impuls">${esc(c.impuls)}</div><textarea data-key="impuls" aria-label="Antwort auf den Reflexionsimpuls">${esc(e.impuls)}</textarea>`}
+      <div class="btnrow">
+        ${own?"":`<button class="btn ${e.revealed?'ghost':''}" id="reveal">${e.revealed?"Musteranalyse ausblenden":"Mit Musteranalyse vergleichen"}</button>`}
+        ${idx>0?`<button class="btn ghost" id="prev">Vorheriger Fall</button>`:""}
+        <button class="btn ghost" id="next">${own?"Zur Übersicht":(idx<DATA.cases.length-1?"Nächster Fall":"Eigenes Fallbeispiel")}</button>
+      </div>
+      <div id="revealBox"></div>
+      <div class="status" id="status"></div>
+    </section>`;
+
+  const drawModel = ()=>{
+    const showCmp = !own && e.revealed;
+    const exp = own?[]:c.sectors;
+    $("#m").innerHTML = modelSVG({style:code=>{
+      const sel = e.sectors.includes(code);
+      if(showCmp){
+        const inExp = exp.includes(code);
+        if(sel && inExp) return {fill:"#00883A", ink:"#fff", pressed:true, mark:"✓"};
+        if(sel && !inExp) return {fill:"#f2c47a", ink:"#1f2421", pressed:true, mark:"?"};
+        if(!sel && inExp) return {fill:"#bcd0ec", ink:"#1f2421", pressed:false, mark:"+"};
+      }
+      return sel ? {fill:"#00883A", ink:"#fff", pressed:true} : {fill:"#dfe9e2", ink:"#1f2421", pressed:false};
+    }});
+    bindModel($("#m"), code=>{
+      const i = e.sectors.indexOf(code);
+      if(i>=0) e.sectors.splice(i,1); else e.sectors.push(code);
+      e.sectors.sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
+      save(); drawModel(); drawSel(); drawReveal(); renderNav();
+      const el=$(`#m .sec[data-code="${code}"]`); if(el) el.focus();
+    });
+  };
+  const drawSel = ()=>{
+    const box = $("#selinfo");
+    if(!e.sectors.length){ box.innerHTML = `<strong>Noch keine Auswahl</strong><br>Markierte Sektoren erscheinen hier mit ihrer Kurzbeschreibung.`; return; }
+    box.innerHTML = `<strong>Ihre Auswahl</strong>` + e.sectors.map(code=>`<div style="margin-top:6px"><strong>${code} · ${SECTORS[code].name}</strong><br><span style="font-size:.9rem">${SECTORS[code].desc}</span></div>`).join("");
+  };
+  const drawReveal = ()=>{
+    const box = $("#revealBox");
+    if(own || !e.revealed){ box.innerHTML=""; return; }
+    const exp = c.sectors;
+    const ok = e.sectors.filter(x=>exp.includes(x));
+    const miss = exp.filter(x=>!e.sectors.includes(x));
+    const extra = e.sectors.filter(x=>!exp.includes(x));
+    const chip = (arr,cls)=>arr.length?arr.map(x=>`<span class="chip ${cls}">${x} · ${SECTORS[x].name}</span>`).join(""):`<span class="legend">keine</span>`;
+    box.innerHTML = `<div class="reveal">
+      <h3>Vergleich Ihrer Markierung</h3>
+      <p class="legend">Im Modell oben steht ✓ für Übereinstimmung, + für einen Sektor der Musteranalyse, den Sie nicht markiert haben, und ? für einen Sektor, den nur Sie markiert haben.</p>
+      <div><strong>Übereinstimmung</strong><div class="chips">${chip(ok,"ok")}</div></div>
+      <div><strong>Zusätzlich in der Musteranalyse</strong><div class="chips">${chip(miss,"miss")}</div></div>
+      <div><strong>Nur bei Ihnen markiert</strong><div class="chips">${chip(extra,"extra")}</div>
+      ${extra.length?`<p class="legend">Prüfen Sie, ob sich Ihre Zuordnung am Fall begründen lässt. Eine gut begründete abweichende Zuordnung kann ebenso tragfähig sein.</p>`:""}</div>
+      <h3>Musteranalyse</h3>
+      ${c.analysis.map(p=>`<p>${esc(p)}</p>`).join("")}
+    </div>`;
+  };
+
+  drawModel(); drawSel(); drawReveal(); growAll();
+
+  main.querySelectorAll("textarea[data-key]").forEach(t=>{
+    t.addEventListener("input", ()=>{ e[t.dataset.key]=t.value; save(); renderNavDots(); });
+  });
+  if(own){
+    $("#ownTitle").addEventListener("input", ev=>{ e.title=ev.target.value; save(); });
+    $("#ownSit").addEventListener("input", ev=>{ e.situation=ev.target.value; save(); renderNavDots(); });
+  }
+  if(!own){
+    $("#reveal").onclick = ()=>{
+      if(!e.revealed){
+        const empty = !e.sectors.length && !FIELDS.some(f=>e[f.key].trim());
+        if(empty && !confirm("Sie haben noch nichts markiert oder eingetragen. Möchten Sie die Musteranalyse trotzdem schon ansehen?")) return;
+      }
+      e.revealed = !e.revealed; save();
+      const btn=$("#reveal"); btn.textContent = e.revealed?"Musteranalyse ausblenden":"Mit Musteranalyse vergleichen"; btn.classList.toggle("ghost", e.revealed);
+      drawModel(); drawReveal();
+      if(e.revealed) $("#revealBox").scrollIntoView({behavior:"smooth",block:"start"});
+    };
+  }
+  const prev=$("#prev"); if(prev) prev.onclick=()=>go(own?DATA.cases[DATA.cases.length-1].nr:DATA.cases[idx-1].nr);
+  $("#next").onclick=()=>go(own?"export":(idx<DATA.cases.length-1?DATA.cases[idx+1].nr:"own"));
+}
+function renderNavDots(){
+  // update progress dots without rebuilding focus-sensitive content
+  const nav=$("#nav");
+  DATA.cases.forEach(c=>{ const d=nav.querySelector(`button[data-view="${c.nr}"] .dot`); if(d) d.className="dot "+progress(state.cases[c.nr]); });
+  const d=nav.querySelector(`button[data-view="own"] .dot`); if(d) d.className="dot "+progress(state.own);
+}
+
+function renderExport(){
+  const rows = DATA.cases.map(c=>{
+    const e=state.cases[c.nr];
+    return `<tr><td>${c.nr}</td><td>${esc(c.title)}</td><td>${e.sectors.length?e.sectors.map(x=>SECTORS[x].name).join(", "):"<span class='legend'>keine</span>"}</td><td>${e.revealed?"angesehen":"<span class='legend'>noch nicht</span>"}</td></tr>`;
+  }).join("");
+  $("#main").innerHTML = `<section class="card">
+    <div class="kicker">Abschluss</div>
+    <h2>Übersicht und Download</h2>
+    <table class="over"><thead><tr><th>Fall</th><th>Titel</th><th>Ihre markierten Sektoren</th><th>Musteranalyse</th></tr></thead><tbody>${rows}
+      <tr><td>+</td><td>${esc(state.own.title||"Eigenes Fallbeispiel")}</td><td>${state.own.sectors.length?state.own.sectors.map(x=>SECTORS[x].name).join(", "):"<span class='legend'>keine</span>"}</td><td><span class='legend'>entfällt</span></td></tr>
+    </tbody></table>
+    <h3>Bearbeitung herunterladen</h3>
+    <p>PDF und Word-Datei enthalten alle Fälle, Ihre markierten Sektoren und Ihre Texte in voller Länge. Auf Wunsch werden die Musteranalysen der Fälle angefügt, die Sie bereits verglichen haben.</p>
+    <label style="display:flex;gap:10px;align-items:center;font-size:.95rem;min-height:44px"><input type="checkbox" id="incl" style="width:22px;height:22px"> Musteranalysen der verglichenen Fälle aufnehmen</label>
+    <div class="btnrow">
+      <button class="btn" id="dlPdf">Als PDF herunterladen</button>
+      <button class="btn ghost" id="dlWord">Als Word-Datei herunterladen</button>
+      <button class="btn ghost" id="dlBackup">Sicherungsdatei speichern</button>
+      <button class="btn ghost" id="ldBackup">Sicherungsdatei laden</button>
+      <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    </div>
+    <p class="hint">Mit der Sicherungsdatei können Sie Ihre Bearbeitung an einem anderen Gerät oder in einem anderen Browser fortsetzen.</p>
+    <h3>Neu beginnen</h3>
+    <div class="btnrow" style="margin-top:4px"><button class="btn danger" id="reset">Alle Eingaben löschen</button></div>
+    <div class="status" id="status"></div>
+  </section>`;
+  $("#dlWord").onclick = ()=>downloadWord($("#incl").checked);
+  $("#dlPdf").onclick = ()=>downloadPdf($("#incl").checked);
+  $("#dlBackup").onclick = ()=>{
+    const blob = new Blob([JSON.stringify(Object.assign({}, state, {app:"fuehrungsverhalten-uebung", version:1}), null, 2)], {type:"application/json"});
+    saveBlob(blob, fileBase()+"_Sicherung.json"); toast("Sicherungsdatei gespeichert");
+  };
+  $("#ldBackup").onclick = ()=>$("#fileIn").click();
+  $("#fileIn").onchange = ev=>{
+    const f = ev.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{ const obj=JSON.parse(r.result); if(!obj.cases) throw 0; mergeState(obj); state.view="export"; save(); $("#name").value=state.name; render(); toast("Sicherung geladen"); }
+      catch(e){ alert("Die Datei konnte nicht gelesen werden. Bitte wählen Sie eine Sicherungsdatei dieser Übung aus."); }
+    };
+    r.readAsText(f);
+  };
+  $("#reset").onclick = ()=>{
+    if(!confirm("Wirklich alle Eingaben löschen? Dies lässt sich nicht rückgängig machen.")) return;
+    state = freshState(); state.view="model"; save(); $("#name").value=""; render(); toast("Alle Eingaben gelöscht");
+  };
+}
+
+/* ---------- download ---------- */
+function fileBase(){
+  const n = (state.name||"").trim().replace(/[^\p{L}\p{N}]+/gu,"_").replace(/^_|_$/g,"");
+  return "Fallanalyse_Fuehrungsverhalten" + (n?"_"+n:"");
+}
+function saveBlob(blob, name){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+}
+function today(){ return new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+
+function collectSections(includeModel){
+  // returns plain structure used by both exporters
+  const out = [];
+  DATA.cases.forEach(c=>{
+    const e=state.cases[c.nr];
+    out.push({
+      title:`Fall ${c.nr} · ${c.title}`, situation:c.situation,
+      sectors:e.sectors, fields:FIELDS.map(f=>({label:f.label, text:e[f.key]})),
+      impuls:c.impuls, impulsAnswer:e.impuls,
+      model: includeModel && e.revealed ? {sectors:c.sectors, analysis:c.analysis} : null
+    });
+  });
+  const o=state.own;
+  if(o.situation.trim() || o.sectors.length || FIELDS.some(f=>o[f.key].trim())){
+    out.push({title:"Eigenes Fallbeispiel"+(o.title.trim()?" · "+o.title.trim():""), situation:o.situation.split(/\n\s*\n/).filter(Boolean),
+      sectors:o.sectors, fields:FIELDS.map(f=>({label:f.label, text:o[f.key]})), impuls:null, impulsAnswer:"", model:null});
+  }
+  return out;
+}
+const sectorLine = arr => arr.length ? arr.map(x=>`${x} ${SECTORS[x].name}`).join(", ") : "keine Auswahl";
+
+let docxLoading=null;
+function loadDocx(){
+  if(window.docx) return Promise.resolve(window.docx);
+  if(docxLoading) return docxLoading;
+  docxLoading = new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/docx@9.8.1/dist/index.iife.js";
+    s.onload=()=>window.docx?res(window.docx):rej(); s.onerror=rej;
+    document.head.appendChild(s);
+    setTimeout(()=>rej(new Error("timeout")),12000);
+  });
+  return docxLoading;
+}
+
+async function downloadWord(includeModel){
+  const secs = collectSections(includeModel);
+  try{
+    const D = await loadDocx();
+    const {Document,Packer,Paragraph,TextRun,HeadingLevel} = D;
+    const F="Calibri";
+    const para=(t,o={})=>String(t||"").split(/\n/).map(line=>new Paragraph({spacing:{after:120,line:300}, children:[new TextRun(Object.assign({text:line,font:F,size:22},o))]}));
+    const head=(t,l)=>new Paragraph({heading:l, keepNext:true, spacing:{before:240,after:100}, children:[new TextRun({text:t,font:F})]});
+    const ch=[];
+    ch.push(new Paragraph({heading:HeadingLevel.TITLE, children:[new TextRun({text:"Fallanalyse Führungsverhalten",font:F})]}));
+    ch.push(...para(`Seminar Klassenführung · ${state.name.trim()||"ohne Namen"} · ${today()}`,{color:"555555",size:20}));
+    secs.forEach(s=>{
+      ch.push(head(s.title, HeadingLevel.HEADING_1));
+      ch.push(head("Situation", HeadingLevel.HEADING_2));
+      s.situation.forEach(p=>ch.push(...para(p,{color:"444444"})));
+      ch.push(head("Markierte Sektoren", HeadingLevel.HEADING_2));
+      ch.push(...para(sectorLine(s.sectors)));
+      s.fields.forEach(f=>{ ch.push(head(f.label, HeadingLevel.HEADING_2)); ch.push(...para(f.text.trim()||"(nicht bearbeitet)", f.text.trim()?{}:{italics:true,color:"888888"})); });
+      if(s.impuls){ ch.push(head("Reflexionsimpuls", HeadingLevel.HEADING_2)); ch.push(...para(s.impuls,{italics:true})); ch.push(...para(s.impulsAnswer.trim()||"(nicht bearbeitet)", s.impulsAnswer.trim()?{}:{italics:true,color:"888888"})); }
+      if(s.model){ ch.push(head("Musteranalyse zum Vergleich", HeadingLevel.HEADING_2)); ch.push(...para("Sektoren der Musteranalyse "+sectorLine(s.model.sectors),{bold:true})); s.model.analysis.forEach(p=>ch.push(...para(p,{color:"444444"}))); }
+    });
+    const doc = new Document({
+      styles:{paragraphStyles:[
+        {id:"Heading1",name:"Heading 1",basedOn:"Normal",next:"Normal",quickFormat:true,run:{size:30,bold:true,color:"00883A",font:F},paragraph:{outlineLevel:0}},
+        {id:"Heading2",name:"Heading 2",basedOn:"Normal",next:"Normal",quickFormat:true,run:{size:23,bold:true,color:"333333",font:F},paragraph:{outlineLevel:1}},
+        {id:"Title",name:"Title",basedOn:"Normal",next:"Normal",run:{size:40,bold:true,color:"00883A",font:F}}
+      ]},
+      sections:[{properties:{page:{margin:{top:1300,bottom:1300,left:1440,right:1440}}}, children:ch}]
+    });
+    const blob = await Packer.toBlob(doc);
+    saveBlob(blob, fileBase()+".docx"); toast("Word-Datei erstellt");
+  }catch(err){
+    // Fallback without internet: Word-compatible HTML document
+    let h = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Fallanalyse</title>
+      <style>body{font-family:Calibri,Arial;font-size:11pt}h1{color:#00883A}h2{color:#00883A;margin-top:18pt}h3{font-size:12pt}</style></head><body>`;
+    h += `<h1>Fallanalyse Führungsverhalten</h1><p>Seminar Klassenführung · ${esc(state.name.trim()||"ohne Namen")} · ${today()}</p>`;
+    secs.forEach(s=>{
+      h += `<h2>${esc(s.title)}</h2><h3>Situation</h3>${s.situation.map(p=>`<p>${esc(p)}</p>`).join("")}<h3>Markierte Sektoren</h3><p>${esc(sectorLine(s.sectors))}</p>`;
+      s.fields.forEach(f=>{ h+=`<h3>${esc(f.label)}</h3><p>${esc(f.text.trim()||"(nicht bearbeitet)").replace(/\n/g,"<br>")}</p>`; });
+      if(s.impuls) h+=`<h3>Reflexionsimpuls</h3><p><i>${esc(s.impuls)}</i></p><p>${esc(s.impulsAnswer.trim()||"(nicht bearbeitet)").replace(/\n/g,"<br>")}</p>`;
+      if(s.model) h+=`<h3>Musteranalyse zum Vergleich</h3><p><b>Sektoren der Musteranalyse ${esc(sectorLine(s.model.sectors))}</b></p>${s.model.analysis.map(p=>`<p>${esc(p)}</p>`).join("")}`;
+    });
+    h += `</body></html>`;
+    saveBlob(new Blob(["﻿"+h],{type:"application/msword"}), fileBase()+".doc");
+    toast("Word-Datei im Kompatibilitätsformat erstellt");
+  }
+}
+
+/* ---------- pdf ---------- */
+let pdfLoading=null;
+function loadPdfLib(){
+  if(window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  if(pdfLoading) return pdfLoading;
+  pdfLoading = new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js";
+    s.onload=()=>(window.jspdf&&window.jspdf.jsPDF)?res(window.jspdf.jsPDF):rej(); s.onerror=rej;
+    document.head.appendChild(s);
+    setTimeout(()=>rej(new Error("timeout")),12000);
+  }).catch(e=>{ pdfLoading=null; throw e; });
+  return pdfLoading;
+}
+const CP1252 = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+function pdfSafe(s){
+  return String(s||"").replace(/\r/g,"").replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]️?/g,"").replace(/️/g,"").replace(/ +([.,;!?])/g,"$1").replace(/\t/g,"    ").replace(/[^\n\x20-\x7E\xA0-\xFF]/g, ch=>CP1252.includes(ch)?ch:"?");
+}
+
+async function downloadPdf(includeModel){
+  const secs = collectSections(includeModel);
+  let JsPDF;
+  try{ JsPDF = await loadPdfLib(); }
+  catch(e){ printFallback(secs); return; }
+  const doc = new JsPDF({unit:"mm", format:"a4"});
+  const M=20, W=210-2*M, BOTTOM=297-20;
+  let y=M;
+  const GREEN=[0,136,58], INK=[31,36,33], GREY=[85,85,85], LIGHT=[136,136,136];
+  const lh = size => size*0.3528*1.38;
+  function ensure(h){ if(y+h>BOTTOM){ doc.addPage(); y=M; } }
+  function write(str, o={}){
+    const size=o.size||10.5, style=o.style||"normal";
+    doc.setFont("helvetica", style); doc.setFontSize(size); doc.setTextColor(...(o.color||INK));
+    const lines = doc.splitTextToSize(pdfSafe(str), o.width||W);
+    lines.forEach(line=>{ ensure(lh(size)); doc.text(line, o.x||M, y+lh(size)*0.78); y+=lh(size); });
+    y += (o.after==null?2:o.after);
+  }
+  function heading(t, level){
+    const size = level===1?15:11.5;
+    ensure(lh(size)+(level===1?14:10));
+    y += level===1?4:2;
+    write(t,{size, style:"bold", color: level===1?GREEN:INK, after:1});
+  }
+  function model(sel, x, top, s){
+    const c=[x+s/2, top+s/2], h=s/2;
+    const P={t:[c[0],c[1]-h],tr:[c[0]+h,c[1]-h],r:[c[0]+h,c[1]],br:[c[0]+h,c[1]+h],b:[c[0],c[1]+h],bl:[c[0]-h,c[1]+h],l:[c[0]-h,c[1]],tl:[c[0]-h,c[1]-h]};
+    const tri={DK:["t","tr"],KD:["tr","r"],KU:["r","br"],UK:["br","b"],UO:["b","bl"],OU:["bl","l"],OD:["l","tl"],DO:["tl","t"]};
+    doc.setLineWidth(0.4);
+    ORDER.forEach(code=>{
+      const [a,b]=tri[code].map(k=>P[k]); const on=sel.includes(code);
+      doc.setFillColor(...(on?GREEN:[223,233,226])); doc.setDrawColor(255,255,255);
+      doc.triangle(c[0],c[1],a[0],a[1],b[0],b[1],"FD");
+      doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.setTextColor(...(on?[255,255,255]:INK));
+      doc.text(code,(c[0]+a[0]+b[0])/3,(c[1]+a[1]+b[1])/3+1,{align:"center"});
+    });
+    doc.setDrawColor(192,19,122); doc.setLineWidth(0.5);
+    doc.line(c[0],top-1,c[0],top+s+1); doc.line(x-1,c[1],x+s+1,c[1]);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5); doc.setTextColor(192,19,122);
+    doc.text("Dominanz",c[0],top-2,{align:"center"}); doc.text("Unterordnung",c[0],top+s+4,{align:"center"});
+    doc.text("Kooperation",x+s+2,c[1]-1); doc.text("Opposition",x-2,c[1]-1,{align:"right"});
+  }
+  function block(label, text){
+    heading(label,2);
+    const t=(text||"").trim();
+    if(t) write(t); else write("(nicht bearbeitet)",{style:"italic",color:LIGHT});
+  }
+
+  write("Fallanalyse Führungsverhalten",{size:20,style:"bold",color:GREEN,after:1});
+  write(`Seminar Klassenführung · ${state.name.trim()||"ohne Namen"} · ${today()}`,{size:10,color:GREY,after:4});
+
+  secs.forEach((s,i)=>{
+    if(i>0){ doc.addPage(); y=M; }
+    heading(s.title,1);
+    heading("Situation",2);
+    if(s.situation.length) s.situation.forEach(p=>write(p,{color:GREY})); else write("(keine Situation beschrieben)",{style:"italic",color:LIGHT});
+    heading("Markierte Sektoren",2);
+    ensure(44);
+    const top=y+5; model(s.sectors, M+18, top, 32);
+    const tx=M+70, tw=W-70; const y0=y; y=top-2;
+    if(s.sectors.length) s.sectors.forEach(code=>write(`${code} ${SECTORS[code].name}`,{x:tx,width:tw,after:0.5}));
+    else write("keine Auswahl",{x:tx,width:tw,style:"italic",color:LIGHT});
+    y=Math.max(y, top+32+6);
+    s.fields.forEach(f=>block(f.label, f.text));
+    if(s.impuls){ heading("Reflexionsimpuls",2); write(s.impuls,{style:"italic",color:GREY}); const t=s.impulsAnswer.trim(); if(t) write(t); else write("(nicht bearbeitet)",{style:"italic",color:LIGHT}); }
+    if(s.model){
+      heading("Musteranalyse zum Vergleich",2);
+      write("Sektoren der Musteranalyse "+sectorLine(s.model.sectors),{style:"bold",size:10});
+      s.model.analysis.forEach(p=>write(p,{color:GREY}));
+    }
+  });
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){
+    doc.setPage(i); doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...LIGHT);
+    doc.text(pdfSafe(`Fallanalyse Führungsverhalten · ${state.name.trim()||"ohne Namen"}`), M, 297-10);
+    doc.text(`Seite ${i} von ${n}`, 210-M, 297-10, {align:"right"});
+  }
+  const blob = doc.output("blob");
+  saveBlob(blob, fileBase()+".pdf");
+  toast("PDF erstellt");
+}
+
+function printFallback(secs){
+  const box = document.getElementById("printArea");
+  let h = `<h1>Fallanalyse Führungsverhalten</h1><p>Seminar Klassenführung · ${esc(state.name.trim()||"ohne Namen")} · ${today()}</p>`;
+  const t = s => `<p class="txt">${esc((s||"").trim()||"(nicht bearbeitet)")}</p>`;
+  secs.forEach(s=>{
+    h += `<section><h2>${esc(s.title)}</h2><h3>Situation</h3>${s.situation.map(p=>`<p class="txt sit">${esc(p)}</p>`).join("")}`;
+    h += `<h3>Markierte Sektoren</h3><p class="txt">${esc(sectorLine(s.sectors))}</p>`;
+    s.fields.forEach(f=>{ h += `<h3>${esc(f.label)}</h3>${t(f.text)}`; });
+    if(s.impuls) h += `<h3>Reflexionsimpuls</h3><p class="txt sit"><i>${esc(s.impuls)}</i></p>${t(s.impulsAnswer)}`;
+    if(s.model) h += `<h3>Musteranalyse zum Vergleich</h3><p class="txt"><b>${esc(sectorLine(s.model.sectors))}</b></p>${s.model.analysis.map(p=>`<p class="txt sit">${esc(p)}</p>`).join("")}`;
+    h += `</section>`;
+  });
+  box.innerHTML = h;
+  alert("Ohne Internetverbindung öffnet sich der Druckdialog. Wählen Sie dort als Ziel „Als PDF speichern“.");
+  window.print();
+}
+
+/* ---------- init ---------- */
+const nameIn = $("#name");
+nameIn.value = state.name;
+nameIn.addEventListener("input", ()=>{ state.name = nameIn.value; save(); });
+render();
+</script>
+</body>
+</html>
