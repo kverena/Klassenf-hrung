@@ -7,7 +7,7 @@ Interaktive Fallarbeit zum Modell des interpersonalen Lehrerverhaltens für das 
 1. Neues Repository auf GitHub anlegen, zum Beispiel `fallarbeit-fuehrungsverhalten`.
 2. Die Datei `index.html` (und diese README) in das Repository hochladen.
 3. Unter **Settings › Pages** als Quelle den Branch `main` und den Ordner `/ (root)` wählen und speichern.
-4. Nach etwa einer Minute ist die Übung unter `https://<benutzername>.github.io/fallarbeit-fuehrungsverhalten/` erreichbar. Diesen Link können Sie in Moodle teilen.
+4. Nach etwa einer Minute ist die Übung unter `https://<benutzername>.github.io/fallarbeit-fuehrungsverhalten/` erreichbar. Diesen Link können Sie mit der Lerngruppe teilen.
 
 ## Hinweise
 
